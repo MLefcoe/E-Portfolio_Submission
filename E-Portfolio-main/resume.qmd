@@ -1,0 +1,28 @@
+---
+title: "Resume"
+toc: false
+---
+
+### Education
+
+-   BSc Environmental and Sustainability Science
+-   Master of Geomatics for Environmental Management
+
+### Experience
+
+-   **Eco-Corridors Laurentiens**
+
+Community based science organisation researching wildlife corridors. Performed field work, data collection and data analysis. 
+
+-   **Animal Use of Manmade Crossing Structures**
+
+Under the supervision of the Landscape Ecology and Urban Sprawl lab at Concordia University, conducted research on animal use of water culverts and similar underpasses along highway 15 in the Laurentiens, QC. A road ecology project with the goal of studying and aiding habitat connectivity across highways. 
+
+-   **Analysis of Urban Heat Island Effect in Montreal**
+
+Completed a GIS analysis on the Urban Heat Island effect in partnership with community leads for the borough of Ville-Marie in Montreal. 
+
+### Institutional Service
+
+- Volunteering at Centre Greene Community Centre
+

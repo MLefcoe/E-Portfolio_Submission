@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: C:/Users/mlefcoe.stu/Documents/FCOR599/E-Portfolio
+
+website:
+  title: "Portfolio: Geomatics and Environment"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: Project Deliverables.qmd
+        text: Project Deliverables
+      - href: Other-Maps-and-Visualizations.qmd
+        text: Other Maps and Visualizations
+      - href: Reports.qmd
+        text: Reports
+      - href: Code Snippets.qmd
+        text: Code Snippets
+
+format:
+  html:
+    theme: morph
+    css: styles.css
+    toc: true
+
+editor: visual
+

@@ -1,0 +1,321 @@
+```{r, echo=FALSE, include=FALSE}
+library(lidR)
+library(sf)
+library(terra)
+library(tree3d)
+library(rayshader)
+library(rayrender)
+library(raybevel)
+library(png)
+library(gifski)
+```
+
+# Project 1 - Shade Mapping Trees and Buildings
+
+![](images/tree_render-01.png)
+
+## Deliverables
+
+### Tree Shade in UBC Neighbourhoods
+
+Assessing the percentage of tree shade per neighbourhood that falls on buildings.
+
+::: {.content-visible when-format="html"}
+![](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZG1iczJuamhuc2Q3emQ1bDR5aGQ4YmozdXh4bjg0Mm4wdXg2N3hxNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NvmkxbczCmN7TJ2m8y/giphy.gif)
+
+Example hourly tree shade from sunrise to sunset in Chancellor Place neighbourhood on a scale of 0 to 1, 0 being full shade. Generated from LiDAR in R.
+:::
+
+![](images/clipboard-2343170415.png)
+
+Percentage of tree shade falling on buildings per neighbourhood, hourly from sunrise to sunset.
+
+### Individual Tree Shade
+
+#### Isolating the shade of individual trees for a species level analysis. Beginning from a point cloud clipped to a species of interest, ending with a shade model for a specific tree.
+
+```{r, echo = FALSE}
+eg_roi <- readLAS("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/eg_roi.las")
+plot(eg_roi)
+
+rgl::rglwidget()
+```
+
+Interactive point cloud for one area of interest filtered to display trees only.
+
+```{r, echo = FALSE}
+eg_roiindiv <- readLAS("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/eg_roi_indiv.las")
+plot(eg_roiindiv)
+
+rgl::rglwidget()
+```
+
+Same interactive point cloud with the central tree isolated and normalized ground points added back in.
+
+![](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExeTN0aXppeWQ3ZXFnZzluc3Bnb2lwZjR4dWdldWRldTIyN245YXRlaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/79fE961cu1qqDgWnHq/giphy.gif)
+
+Example tree shade cast by an individual tree every thirty minutes.
+
+# Project 2 - Urban Heat Island Hotspots Montreal
+
+The client for this project was Peter-Mcgill Community Table, looking to identify areas vulnerable to UHI in the district of Ville-Marie.
+
+![](images/clipboard-3181373758.png)
+
+Risk level based on medium income across districts, population aged 65 or older, and population density.
+
+![](images/clipboard-473975278.png)
+
+Environmental risk factors map. Describes the likelihood of Urban Heat Island Effect.
+
+![](images/clipboard-3391112033.png)
+
+# Project 3 - Animal Use of Manmade Crossing Structures
+
+### Access the full report:
+
+<iframe height="600" width="100%" src="https://animal-use.tiiny.site/">
+
+</iframe>
+
+# Other Maps and Visuals
+
+### 3D Plot
+
+```{r, echo=FALSE, include=FALSE}
+lasFile <- readLAScatalog("C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/LiDAR Vancouver 2022 - UBC Campus/All_LAS", filter = "-keep first")
+las <- clip_rectangle(lasFile, 481808.5,5456316.8, 482134.3, 5456601.2)
+
+buildings <- st_read("C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/building_polygons.shp", promote_to_multi = FALSE)
+pt4 <- st_point(c(481808.5,5456316.8), dim = "XY")
+pt3 <- st_point(c(481808.5, 5456601.2), dim = "XY")
+pt2 <- st_point(c(482134.3, 5456316.8), dim = "XY")
+pt1 <- st_point(c(482134.3,5456601.2), dim = "XY")
+pts <- c(pt1,pt2,pt3,pt4)
+
+buildings <- st_crop(buildings,st_bbox(pts))
+buildings <- st_cast(buildings, to = "POLYGON")
+
+#Seperate tree from non-tree
+veg <- filter_poi(las, Classification == LASHIGHVEGETATION)
+
+#Tree segmentation for convex hull (2d)
+tindiv <- segment_trees(veg, algorithm = li2012(R = 3, speed_up = 5))
+metrics <- crown_metrics(tindiv, .stdtreemetrics, geom = "convex")
+
+#rayshader
+dsm <- rasterize_terrain(las, algorithm = tin())
+dsm_matrix <- raster_to_matrix(dsm)
+ttops <- locate_trees(veg, lmf(ws = 5))
+tree_locations <- st_coordinates(ttops)
+dsm_extent <- ext(dsm)
+extent_vals <- dsm_extent@ptr$vector
+loc_metrics <- st_intersects(ttops, metrics$geometry)
+
+widths <- c()
+for(i in 1:580){
+  index <- loc_metrics[[i]][1]
+  radius <- sqrt(metrics$convhull_area[index]/pi)
+  widths <- c(widths, radius)
+}
+
+```
+
+*Scroll to zoom. Left-click to rotate.*
+
+```{r, echo=FALSE}
+overlay_img <- png::readPNG("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/basemap_real.png")
+
+height_shade(dsm_matrix) %>%
+  add_overlay(overlay_img) %>% 
+  add_shadow(texture_shade(dsm_matrix),0.2) %>% 
+  add_shadow(lamb_shade(dsm_matrix),0) %>% 
+  plot_3d(dsm_matrix, background = "lightblue",
+          zoom = 0.33)
+
+render_tree(lat = tree_locations[,2], 
+            long = tree_locations[,1], 
+            absolute_height = TRUE, 
+            crown_width = widths,
+            tree_height = tree_locations[,3],
+            trunk_height_ratio = 0.2 + 0.1*runif(nrow(tree_locations)),
+            crown_color = "#00aa00",
+            type = "cone",
+            extent = dsm_extent, 
+            heightmap = dsm_matrix,
+            clear_previous = TRUE,
+            min_height = 8)
+
+render_buildings(buildings[c(9,15),],
+                 extent = dsm_extent,
+                 heightmap = dsm_matrix,
+                 material = "burlywood4",
+                 roof_material = "darkolivegreen",
+                 roof_height = 15,
+                 angle = 10)
+
+render_buildings(buildings[-9,],
+                 extent = dsm_extent,
+                 heightmap = dsm_matrix,
+                 material = "brown",
+                 roof_material = "grey27",
+                 roof_height = 10,
+                 angle = 10)
+
+
+rgl::pop3d("lights")
+rgl::light3d(phi=35,theta=90, viewpoint.rel=F, diffuse="#ffffff", specular="#000000")
+rgl::light3d(phi=-45,theta=-40, viewpoint.rel=F, diffuse="#aaaaaa", specular="#000000")
+
+rgl::rglwidget()
+```
+
+Interactive 3D view of the Forest Sciences Centre on UBC Vancouver Campus. Generated from LiDAR using R.
+
+### Salmon Stream Network Analysis
+
+![](images/salmon_habitat.jpg)
+
+The result of a hydrology network analysis for the conservation of salmon species in British Columbia
+
+# Code Snippets
+
+### Shade simulation function
+
+```{r, eval=FALSE}
+#library(suncalc)
+#library(rayshader)
+#library(terra)
+
+#### Setup time intervals and sun positions
+
+#start <-  as.POSIXct("2024-07-17 01:00:00", tz = "America/Los_Angeles")
+#end <-  as.POSIXct("2024-07-18 00:00:00", tz = "America/Los_Angeles")
+
+#times <- data.frame(dates = seq(start, end, "hour"))
+
+#sun_pos <- getSunlightPosition(date = times$dates, lat = 49.2827, lon = -123.1207)
+
+shade_sim <- function(pc, sun_calc,name){   #take a LiDAR point cloud,
+  alt <- sun_calc$altitude*(180/pi)         #a table of sun positions,
+  azim <- sun_calc$azimuth*(180/pi)         #and output file name as inputs
+  
+  if(alt >= 0){
+    dsm <- rasterize_canopy(pc, dsmtin(), res = 2) %>%    #create and shade a dsm
+      raster_to_matrix() %>% 
+      ray_shade(sunaltitude = alt, sunangle = azim) %>% 
+      rast()
+  
+    writeRaster(dsm, name, overwrite = TRUE)   #write out the result
+  }
+}
+```
+
+### Create 3D interactive plot from LiDAR using Rayshader and Tree3d
+
+Morgan-Wall T (2025). *rayshader: Create Maps and Visualize Data in 2D and 3D*. R package version 0.38.10, https://github.com/tylermorganwall/rayshader, [https://www.rayshader.com](https://www.rayshader.com/).
+
+[https://github.com/tylermorganwall/tree3dhttps://github.com/tylermorganwall/tree3d](https://github.com/tylermorganwall/tree3d)
+
+```{r, eval=FALSE}
+#library(lidR)
+#library(sf)
+#library(terra)
+#library(tree3d)
+#library(rayshader)
+#library(png)
+#library(rgl)
+
+#Load in data and set up region of interest
+
+lasFile <- readLAScatalog("C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/LiDAR Vancouver 2022 - UBC Campus/All_LAS", filter = "-keep first")
+las <- clip_rectangle(lasFile, 481808.5,5456316.8, 482134.3, 5456601.2)
+
+buildings <- st_read("C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/building_polygons.shp", promote_to_multi = FALSE)
+pt4 <- st_point(c(481808.5,5456316.8), dim = "XY")
+pt3 <- st_point(c(481808.5, 5456601.2), dim = "XY")
+pt2 <- st_point(c(482134.3, 5456316.8), dim = "XY")
+pt1 <- st_point(c(482134.3,5456601.2), dim = "XY")
+pts <- c(pt1,pt2,pt3,pt4)
+
+buildings <- st_crop(buildings,st_bbox(pts))
+buildings <- st_cast(buildings, to = "POLYGON")
+
+#Seperate tree from non-tree
+veg <- filter_poi(las, Classification == LASHIGHVEGETATION)
+
+#Tree segmentation for convex hull (2d)
+tindiv <- segment_trees(veg, algorithm = li2012(R = 3, speed_up = 5))
+metrics <- crown_metrics(tindiv, .stdtreemetrics, geom = "convex")
+
+#rayshader prep and get locations, heights and extent
+dsm <- rasterize_terrain(las, algorithm = tin())
+dsm_matrix <- raster_to_matrix(dsm)
+ttops <- locate_trees(veg, lmf(ws = 5))
+tree_locations <- st_coordinates(ttops)
+dsm_extent <- ext(dsm)
+extent_vals <- dsm_extent@ptr$vector
+loc_metrics <- st_intersects(ttops, metrics$geometry)
+
+#get tree widths
+widths <- c()
+for(i in 1:580){
+  index <- loc_metrics[[i]][1]
+  radius <- sqrt(metrics$convhull_area[index]/pi)
+  widths <- c(widths, radius)
+}
+
+
+```
+
+```{r, eval = FALSE}
+#Overlay street names
+overlay_img <- png::readPNG("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/basemap_real.png")
+
+#3D Digital Elevation Model
+height_shade(dsm_matrix) %>%
+  add_overlay(overlay_img) %>% 
+  add_shadow(texture_shade(dsm_matrix),0.2) %>% 
+  add_shadow(lamb_shade(dsm_matrix),0) %>% 
+  plot_3d(dsm_matrix, background = "lightblue",
+          zoom = 0.33)
+
+#Render trees
+render_tree(lat = tree_locations[,2], 
+            long = tree_locations[,1], 
+            absolute_height = TRUE, 
+            crown_width = widths,
+            tree_height = tree_locations[,3],
+            trunk_height_ratio = 0.2 + 0.1*runif(nrow(tree_locations)),
+            crown_color = "#00aa00",
+            type = "cone",
+            extent = dsm_extent, 
+            heightmap = dsm_matrix,
+            clear_previous = TRUE,
+            min_height = 8)
+
+#Render Forest Sciences Center
+render_buildings(buildings[c(9,15),],
+                 extent = dsm_extent,
+                 heightmap = dsm_matrix,
+                 material = "burlywood4",
+                 roof_material = "darkolivegreen",
+                 roof_height = 15,
+                 angle = 10)
+
+#Render other buildings
+render_buildings(buildings[-9,],
+                 extent = dsm_extent,
+                 heightmap = dsm_matrix,
+                 material = "brown",
+                 roof_material = "grey27",
+                 roof_height = 10,
+                 angle = 10)
+
+#Change lighting
+rgl::pop3d("lights")
+rgl::light3d(phi=35,theta=90, viewpoint.rel=F, diffuse="#ffffff", specular="#000000")
+rgl::light3d(phi=-45,theta=-40, viewpoint.rel=F, diffuse="#aaaaaa", specular="#000000")
+
+rgl::rglwidget()
+```

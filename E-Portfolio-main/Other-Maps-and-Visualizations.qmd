@@ -1,0 +1,114 @@
+---
+title: "Other Maps and Visualizations"
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(lidR)
+library(sf)
+library(terra)
+library(tree3d)
+library(rayshader)
+library(rayrender)
+library(raybevel)
+library(png)
+library(gifski)
+```
+
+## 3D Interactive Plot
+
+```{r, echo=FALSE, include=FALSE}
+lasFile <- readLAScatalog("C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/LiDAR Vancouver 2022 - UBC Campus/All_LAS", filter = "-keep first")
+las <- clip_rectangle(lasFile, 481808.5,5456316.8, 482134.3, 5456601.2)
+
+buildings <- st_read("C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/building_polygons.shp", promote_to_multi = FALSE)
+pt4 <- st_point(c(481808.5,5456316.8), dim = "XY")
+pt3 <- st_point(c(481808.5, 5456601.2), dim = "XY")
+pt2 <- st_point(c(482134.3, 5456316.8), dim = "XY")
+pt1 <- st_point(c(482134.3,5456601.2), dim = "XY")
+pts <- c(pt1,pt2,pt3,pt4)
+
+buildings <- st_crop(buildings,st_bbox(pts))
+buildings <- st_cast(buildings, to = "POLYGON")
+
+#Seperate tree from non-tree
+veg <- filter_poi(las, Classification == LASHIGHVEGETATION)
+
+#Tree segmentation for convex hull (2d)
+tindiv <- segment_trees(veg, algorithm = li2012(R = 3, speed_up = 5))
+metrics <- crown_metrics(tindiv, .stdtreemetrics, geom = "convex")
+
+#rayshader
+dsm <- rasterize_terrain(las, algorithm = tin())
+dsm_matrix <- raster_to_matrix(dsm)
+ttops <- locate_trees(veg, lmf(ws = 5))
+tree_locations <- st_coordinates(ttops)
+dsm_extent <- ext(dsm)
+extent_vals <- dsm_extent@ptr$vector
+loc_metrics <- st_intersects(ttops, metrics$geometry)
+
+widths <- c()
+for(i in 1:580){
+  index <- loc_metrics[[i]][1]
+  radius <- sqrt(metrics$convhull_area[index]/pi)
+  widths <- c(widths, radius)
+}
+
+```
+
+*Scroll to zoom. Left-click to rotate.*
+
+```{r, echo=FALSE}
+overlay_img <- png::readPNG("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/basemap_real.png")
+
+height_shade(dsm_matrix) %>%
+  add_overlay(overlay_img) %>% 
+  add_shadow(texture_shade(dsm_matrix),0.2) %>% 
+  add_shadow(lamb_shade(dsm_matrix),0) %>% 
+  plot_3d(dsm_matrix, background = "lightblue",
+          zoom = 0.33)
+
+render_tree(lat = tree_locations[,2], 
+            long = tree_locations[,1], 
+            absolute_height = TRUE, 
+            crown_width = widths,
+            tree_height = tree_locations[,3],
+            trunk_height_ratio = 0.2 + 0.1*runif(nrow(tree_locations)),
+            crown_color = "#00aa00",
+            type = "cone",
+            extent = dsm_extent, 
+            heightmap = dsm_matrix,
+            clear_previous = TRUE,
+            min_height = 8)
+
+render_buildings(buildings[c(9,15),],
+                 extent = dsm_extent,
+                 heightmap = dsm_matrix,
+                 material = "burlywood4",
+                 roof_material = "darkolivegreen",
+                 roof_height = 15,
+                 angle = 10)
+
+render_buildings(buildings[-9,],
+                 extent = dsm_extent,
+                 heightmap = dsm_matrix,
+                 material = "brown",
+                 roof_material = "grey27",
+                 roof_height = 10,
+                 angle = 10)
+
+
+rgl::pop3d("lights")
+rgl::light3d(phi=35,theta=90, viewpoint.rel=F, diffuse="#ffffff", specular="#000000")
+rgl::light3d(phi=-45,theta=-40, viewpoint.rel=F, diffuse="#aaaaaa", specular="#000000")
+
+rgl::rglwidget()
+
+```
+
+Interactive 3D view of the Forest Sciences Centre on UBC Vancouver Campus.
+
+## Salmon Stream Network Analysis
+
+![](images/salmon_network_good.jpg)
+
+The result of a hydrology network analysis for the conservation of salmon species in British Columbia.

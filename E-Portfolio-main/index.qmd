@@ -1,0 +1,51 @@
+---
+title: "Maxwell Lefcoe"
+image: images/portfolio_headshot.png
+toc: false
+about:
+  template: jolla
+  image-width: 20em
+  links: 
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/max-lefcoe-2127812a5/
+    - icon: github
+      text: GitHub
+      href: https://github.com/MLefcoe
+    - icon: envelope-at
+      text: Email
+      href: mailto:maxlefcoe@gmail.com
+---
+
+### Education
+
+BSc Environmental and Sustainability Science
+
+Master of Geomatics for Environmental Management
+
+### Experience
+
+**Éco-Corridors Laurentiens**
+
+Community based science organisation researching wildlife corridors. Performed field work, data collection and data analysis.
+
+**Animal Use of Manmade Crossing Structures**
+
+Under the supervision of the Landscape Ecology and Urban Sprawl lab at Concordia University, conducted research on animal use of water culverts and similar underpasses along highway 15 in the Laurentiens, QC. A road ecology project with the goal of studying and aiding habitat connectivity across highways.
+
+**Analysis of Urban Heat Island Effect in Montreal**
+
+Completed a GIS analysis on the Urban Heat Island effect in partnership with community leads for the borough of Ville-Marie in Montreal.
+
+### Institutional Service
+
+Volunteering at Centre Greene Community Centre
+
+::: {.content-visible when-format="html" layout-ncol="3"}
+![](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWNscnBzM2FzYmd1amd2OWpoOG9iZGhzbGl0Z2ZyMmdneXJ6bGdpZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cYwvshSjQF0Lo6Pmkg/giphy.gif)
+
+![](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXRieXg2ZTNsdGVjcDU4dXFoZ2V4bG85ZXh4N2U4YjM0N2x6bnBxZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ko6ZeFnfc4fELe0jpI/giphy.gif)
+
+
+![](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2J0ODdrejBkNmpibXc2N2MzZWNkMjl4bjc1enBuZjMyMmJrMHFmZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ITzdJQMWNBkstYLl8Z/giphy.gif)
+:::

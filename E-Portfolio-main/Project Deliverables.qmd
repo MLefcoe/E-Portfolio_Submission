@@ -1,0 +1,97 @@
+---
+title: "Project Deliverables"
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(lidR)
+library(sf)
+library(terra)
+library(tree3d)
+library(rayshader)
+library(rayrender)
+library(raybevel)
+library(png)
+library(gifski)
+```
+
+# Project 1 - Shade Mapping Trees and Buildings
+
+![](images/tree_render.png)
+
+### Tree Shade in UBC Neighbourhoods
+
+Assessing the percentage of tree shade per neighbourhood that falls on buildings.
+
+::: {.content-visible when-format="html"}
+![](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHhkc3kxb3VtdG5lcW9xYWVoaWFqbHc2MmhjdmxsdzJzZmVnc3FvZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xaE3XXdeeLoLcssRe3/giphy.gif)
+
+Example hourly tree shade from sunrise to sunset in Chancellor Place neighbourhood on a scale of 0 to 1, 0 being full shade.
+:::
+
+![](images/clipboard-2343170415.png)
+
+Percentage of tree shade falling on buildings per neighbourhood, hourly from sunrise to sunset.
+
+### Individual Tree Shade
+
+#### Isolating the shade of individual trees for a species level analysis. Beginning from a point cloud clipped to a species of interest, ending with a shade model for a specific tree.
+
+*Scroll to zoom. Left-click to rotate.*
+
+```{r, echo = FALSE}
+eg_roi <- readLAS("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/eg_roi.las") 
+plot(eg_roi)  
+rgl::rglwidget()
+```
+
+Interactive point cloud for one area of interest filtered to display trees only.
+
+```{r, echo = FALSE}
+eg_roiindiv <- readLAS("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/eg_roi_indiv.las") 
+plot(eg_roiindiv)  
+rgl::rglwidget()
+```
+
+Same interactive point cloud with the central tree isolated and normalized ground points added back in.
+
+![](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNG41ZnI2bmt1Nmk5emV3bG1ydnVjdXEyeGxpaHA3bzc2bTVtb2hoZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/46gE1BJq280xJBrGsW/giphy.gif)
+
+Example tree shade cast by an individual tree every thirty minutes.
+
+#### Final Shade Map
+
+```{r leaflet, include = FALSE}
+library(dplyr); library(leaflet); library(leafem); library(plainview); library(mapview); library(terra)
+
+clim_res <- rast("C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Results/test_result_ag.tif")
+
+ramp <- colorNumeric(palette = c("#CFFDD7","#00000099"),na.color = "#00000000", domain = 1:100, alpha = TRUE)
+
+m <- leaflet() %>%
+  addProviderTiles("Esri.WorldImagery") %>%
+  addScaleBar(position = c("bottomleft")) %>%
+  setView(-123.245891, 49.262280, zoom = 13.6) %>% 
+  addRasterImage(clim_res, colors = ramp)
+```
+
+```{r map, echo = FALSE}
+m
+```
+
+Interactive webmap of climate change resilient shade across campus. Dark areas represent a high density of tall, climate change resilient tree species that tend to cast more shade.
+
+# Project 2 - Urban Heat Island Hotspots Montreal
+
+The client for this project was Peter-Mcgill Community Table, looking to identify areas vulnerable to UHI in the district of Ville-Marie.
+
+![](images/clipboard-3181373758.png)
+
+Risk level based on medium income across districts, population aged 65 or older, and population density.
+
+![](images/clipboard-473975278.png)
+
+Environmental risk factors map. Describes the likelihood of Urban Heat Island Effect.
+
+![](images/clipboard-3391112033.png)
+
+# 

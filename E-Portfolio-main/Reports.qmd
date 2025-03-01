@@ -1,0 +1,23 @@
+---
+title: "Reports"
+---
+
+# Animal Use of Manmade Crossing Structures
+
+A directed study conducted under the supervision of the Landscape Ecology lab at Concordia University.
+
+<iframe height="900" width="100%" src="https://animal-use.tiiny.site/">
+
+</iframe>
+
+# Conflict Styles
+
+An assessment of conflict and negotiation near the Lebialem-Mone Forest in southern Cameroon, from the perspective of wildlife conservation and environmental management.
+
+<iframe class="scribd_iframe_embed" title="MLefcoe ARankin ConlictStyles FCOR510" src="https://www.scribd.com/embeds/834281655/content?start_page=1&view_mode=scroll&access_key=key-vUXb7O39ppFAElYxP14Z&scribd_rebrand=true" tabindex="0" data-auto-height="true" data-aspect-ratio="0.7729220222793488" scrolling="no" width="100%" height="600" frameborder="0" ></iframe>
+
+<p style="margin: 12px auto 6px auto; font-family: Helvetica,Arial,Sans-serif; font-size: 14px; line-height: normal; display: block;">
+
+<a title="View MLefcoe ARankin ConlictStyles FCOR510 on Scribd" href="https://www.scribd.com/document/834281655/MLefcoe-ARankin-ConlictStyles-FCOR510#from_embed" style="text-decoration: underline;"> MLefcoe ARankin ConlictStyles FCOR510 </a> by <a title="View Max's profile on Scribd" href="https://www.scribd.com/user/303521945/Max#from_embed" style="text-decoration: underline;" > Max </a>
+
+</p>

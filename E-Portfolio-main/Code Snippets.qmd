@@ -1,0 +1,209 @@
+---
+title: "Code Snippets"
+execute: 
+  eval: false
+code-block-bg: "white"
+code-block-border-left: "black"
+---
+
+# Code Snippets
+
+Morgan-Wall T (2025). *rayshader: Create Maps and Visualize Data in 2D and 3D*. R package version 0.38.10, https://github.com/tylermorganwall/rayshader, [https://www.rayshader.com](https://www.rayshader.com/).
+
+Roussel J, Auty D, Coops NC, Tompalski P, Goodbody TR, Meador AS, Bourdon J, de Boissieu F, Achim A (2020). “lidR: An R package for analysis of Airborne Laser Scanning (ALS) data.” *Remote Sensing of Environment*, **251**, 112061. ISSN 0034-4257, [doi:10.1016/j.rse.2020.112061](https://doi.org/10.1016/j.rse.2020.112061), <https://www.sciencedirect.com/science/article/pii/S0034425720304314>.
+
+Roussel J, Auty D (2024). *Airborne LiDAR Data Manipulation and Visualization for Forestry Applications*. R package version 4.1.2, <https://cran.r-project.org/package=lidR>.
+
+### Shade simulation function in R
+
+```{r, eval=FALSE}
+#library(suncalc)
+#library(rayshader)
+#library(terra)
+
+#### Setup time intervals and sun positions
+
+#start <-  as.POSIXct("2024-07-17 01:00:00", tz = "America/Los_Angeles")
+#end <-  as.POSIXct("2024-07-18 00:00:00", tz = "America/Los_Angeles")
+
+#times <- data.frame(dates = seq(start, end, "hour"))
+
+#sun_pos <- getSunlightPosition(date = times$dates, lat = 49.2827, lon = -123.1207)
+
+shade_sim <- function(pc, sun_calc,name){   #take a LiDAR point cloud,
+  alt <- sun_calc$altitude*(180/pi)         #a table of sun positions,
+  azim <- sun_calc$azimuth*(180/pi)         #and output file name as inputs
+  
+  if(alt >= 0){
+    dsm <- rasterize_canopy(pc, dsmtin(), res = 2) %>%    #create and shade a dsm
+      raster_to_matrix() %>% 
+      ray_shade(sunaltitude = alt, sunangle = azim) %>% 
+      rast()
+  
+    writeRaster(dsm, name, overwrite = TRUE)   #write out the result
+  }
+}
+
+```
+
+### Isolate center tree from a LiDAR point cloud
+
+```{r, eval = FALSE}
+#Load in 764 segmented point clouds
+path <- (list.files("Outputs/Species Level/las_clipped", full.names = TRUE))
+
+rois <- list()
+for(i in 1:length(path)){
+  rois[[i]] <- readLAS(path[i])
+}
+
+#Point clouds are circular regions clipped from larger file. This allowed for the center coordinates to be included in the filename and used in isolating the central tree below
+roi_indiv <- list()
+for(i in 1:764){
+#generate metrics as a table of treeIDs and coordinates
+metrics <- crown_metrics(rois[[i]], ~list(z_max = max(Z), z_mean = mean(Z)))
+
+#use filename to create point geometries in the center of the plot
+test_centroid <- str_extract(path[i], 
+                 "[:digit:]{6}\\.[:digit:]{1}\\_[:digit:]{7}|[:digit:]{6}\\_[:digit:]{7}") %>%
+  str_replace("_", ", ") %>%
+  str_split("\\,\\s",2) %>%
+  unlist() %>%
+  as.numeric() %>%
+  st_point() %>%
+  st_geometry()
+
+st_crs(test_centroid) <- 26910
+  
+#add new row to metrics table that contains distance from tree to center
+new_metrics <- mutate(metrics, dist = st_distance(metrics, test_centroid))
+  
+#central tree is the tree with the shortest distance to the centroid
+center_tree <- filter(new_metrics, dist == min(dist))
+  
+#assign it back out to a list
+roi_indiv[[i]] <- filter_poi(rois[[i]], treeID == center_tree$treeID)
+}
+```
+
+### Arcpy Script for Shade Percentage Analysis
+
+``` python
+#Loop georeference function through each folder, georeference shade simulation outputs
+og_path = r"C:\Users\mlefcoe.stu\Documents\Shade_Mapping_R\Outputs\Neighbourhood Level"
+control_path = r"C:\Users\mlefcoe.stu\Documents\Shade_Mapping_R\Inputs\Control_Points"
+ras_folders = os.listdir(og_path)
+
+for i in range(len(ras_folders)):
+    georefer(directory = og_path + "\\" + ras_folders[i], out_name =
+    ras_folders[i][:ras_folders[i].index(" ")], link = control_path + "\\" +
+    ras_folders[i][:ras_folders[i].index("_")] + ".txt")
+
+
+#Define function to reclassify all shade rasters in a folder
+def slicer(directory, out_name):
+    count = 0
+    ras_files = os.listdir(directory)
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith(".tif"):
+            ras = directory + "\\" + ras_files[i]
+            out_slice = arcpy.sa.Slice(in_raster=ras, number_zones=3, 
+            slice_type = "NATURAL_BREAKS")
+            out_slice.save(directory + "\\" + out_name + "reclassed" + 
+            str(count) + ".tif")
+            count = count + 1
+
+#Loop reclassing functions through folders
+og_path = r"C:\Users\mlefcoe.stu\Documents\Shade_Mapping_R\Outputs\Neighbourhood Level"
+ras_folders = os.listdir(og_path)
+
+for i in range(len(ras_folders)):
+    slicer(directory = og_path + "\\" + ras_folders[i], 
+    out_name=ras_folders[i][:ras_folders[i].index(" ")])
+
+#Define function to extract shade from all shade rasters in a folder
+def extract_shade(directory, out_name):
+    count = 0
+    ras_files = os.listdir(directory)
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith("reclassed" + str(count) + ".tif"):
+            ras = directory + "\\" + ras_files[i]
+            attextract = arcpy.sa.ExtractByAttributes(in_raster = ras,
+            where_clause = "VALUE = 1")
+            attextract.save(directory + "\\" + out_name + "extracted" + 
+            str(count) + ".tif")
+            count = count + 1
+    count = 10
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith("reclassed" + str(count) + ".tif"):
+            ras = directory + "\\" + ras_files[i]
+            attextract = arcpy.sa.ExtractByAttributes(in_raster = ras,
+            where_clause = "VALUE = 1")
+            attextract.save(directory + "\\" + out_name + "extracted" + 
+            str(count) + ".tif")
+            count = count + 1
+
+#Loop extracting function through each folder
+og_path = r"C:\Users\mlefcoe.stu\Documents\Shade_Mapping_R\Outputs\Neighbourhood Level"
+ras_folders = os.listdir(og_path)
+
+for i in range(len(ras_folders)):
+    extract_shade(directory = og_path + "\\" + ras_folders[i], 
+    out_name=ras_folders[i][:ras_folders[i].index(" ")])
+
+#Define a function to convert shade rasters in a folder to polygons
+def ras_to_poly(directory, out_name):
+    count = 0
+    ras_files = os.listdir(directory)
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith("extracted" + str(count) + ".tif"):
+            ras = directory + "\\" + ras_files[i]
+            arcpy.conversion.RasterToPolygon(in_raster=ras, 
+            out_polygon_features = directory + "\\" + out_name + "shade_poly" +
+            str(count) + ".shp")
+            count = count + 1
+    count = 10
+    ras_files = os.listdir(directory)
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith("extracted" + str(count) + ".tif"):
+            ras = directory + "\\" + ras_files[i]
+            arcpy.conversion.RasterToPolygon(in_raster=ras, 
+            out_polygon_features = directory + "\\" + out_name + "shade_poly" +
+            str(count) + ".shp")
+            count = count + 1
+
+#Loop polyshade function through all folders
+og_path = r"C:\Users\mlefcoe.stu\Documents\Shade_Mapping_R\Outputs\Neighbourhood Level"
+ras_folders = os.listdir(og_path)
+ras_folders
+
+for i in range(len(ras_folders)):
+    ras_to_poly(directory = og_path + "\\" + ras_folders[i], 
+    out_name=ras_folders[i][:ras_folders[i].index(" ")])
+
+#Define a function to interesect each shade raster in a folder with a specified feature class
+def intersector(directory, out_name, feature):
+    count = 0
+    ras_files = os.listdir(directory)
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith("poly" + str(count) + ".shp"):
+            ras = directory + "\\" + ras_files[i]
+            arcpy.analysis.PairwiseIntersect(in_features = [feature, ras],
+            out_feature_class = directory + "\\" + out_name + "intersected" +
+            str(count))
+            count = count + 1
+    count = 10
+    for i in range(len(ras_files)):
+        if ras_files[i].endswith("poly" + str(count) + ".shp"):
+            ras = directory + "\\" + ras_files[i]
+            arcpy.analysis.PairwiseIntersect(in_features = [feature, ras],
+            out_feature_class = directory + "\\" + out_name + "intersected" +
+            str(count))
+            count = count + 1
+
+#Loop the intersection function through each folder
+for i in range(len(ras_folders)):
+    intersector(directory = og_path + "\\" + ras_folders[i], 
+    out_name = ras_folders[i][:ras_folders[i].index(" ")], 
+    feature = r"C:\Users\mlefcoe.stu\OneDrive - UBC\Documents\FCOR599\Shade         Mapping\building_polygons.shp")
+```

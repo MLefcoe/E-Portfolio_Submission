@@ -1,0 +1,254 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Maxwell Lefcoe",
+    "section": "",
+    "text": "Education\nBSc Environmental and Sustainability Science\nMaster of Geomatics for Environmental Management\n\n\nExperience\nÉco-Corridors Laurentiens\nCommunity based science organisation researching wildlife corridors. Performed field work, data collection and data analysis.\nAnimal Use of Manmade Crossing Structures\nUnder the supervision of the Landscape Ecology and Urban Sprawl lab at Concordia University, conducted research on animal use of water culverts and similar underpasses along highway 15 in the Laurentiens, QC. A road ecology project with the goal of studying and aiding habitat connectivity across highways.\nAnalysis of Urban Heat Island Effect in Montreal\nCompleted a GIS analysis on the Urban Heat Island effect in partnership with community leads for the borough of Ville-Marie in Montreal.\n\n\nInstitutional Service\nVolunteering at Centre Greene Community Centre"
+  },
+  {
+    "objectID": "resume.html",
+    "href": "resume.html",
+    "title": "Resume",
+    "section": "",
+    "text": "Education\n\nBSc Environmental and Sustainability Science\nMaster of Geomatics for Environmental Management\n\n\n\nExperience\n\nEco-Corridors Laurentiens\n\nCommunity based science organisation researching wildlife corridors. Performed field work, data collection and data analysis.\n\nAnimal Use of Manmade Crossing Structures\n\nUnder the supervision of the Landscape Ecology and Urban Sprawl lab at Concordia University, conducted research on animal use of water culverts and similar underpasses along highway 15 in the Laurentiens, QC. A road ecology project with the goal of studying and aiding habitat connectivity across highways.\n\nAnalysis of Urban Heat Island Effect in Montreal\n\nCompleted a GIS analysis on the Urban Heat Island effect in partnership with community leads for the borough of Ville-Marie in Montreal.\n\n\nInstitutional Service\n\nVolunteering at Centre Greene Community Centre"
+  },
+  {
+    "objectID": "publications.html",
+    "href": "publications.html",
+    "title": "Publications",
+    "section": "",
+    "text": "Peer-reviewed publications:\nDespite listing them on your resume, it may also be pertinent to create a seperate tab for publications and reports. As your career progresses, this list may become quite long, so be sure to organize things. You may want to point to ‘most recent’ publications, or categorize things by project/topic."
+  },
+  {
+    "objectID": "content_development.html",
+    "href": "content_development.html",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "Project Deliverable 1\nThis is a sample page where you can archive project deliverables."
+  },
+  {
+    "objectID": "content.html",
+    "href": "content.html",
+    "title": "Project 1 - Shade Mapping Trees and Buildings",
+    "section": "",
+    "text": "Assessing the percentage of tree shade per neighbourhood that falls on buildings.\n\nExample hourly tree shade from sunrise to sunset in Chancellor Place neighbourhood on a scale of 0 to 1, 0 being full shade. Generated from LiDAR in R.\n\nPercentage of tree shade falling on buildings per neighbourhood, hourly from sunrise to sunset.\n\n\n\n\n\n\n\n\n\n\n\nInteractive point cloud for one area of interest filtered to display trees only.\n\n\n\n\n\n\nSame interactive point cloud with the central tree isolated and normalized ground points added back in.\n\nExample tree shade cast by an individual tree every thirty minutes."
+  },
+  {
+    "objectID": "content.html#leaflet",
+    "href": "content.html#leaflet",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "Sample leaflet - for detailed leaflet instructions, visit the FCOR 599 workshop archive page here."
+  },
+  {
+    "objectID": "content.html#code-snippets",
+    "href": "content.html#code-snippets",
+    "title": "Project 1 - Shade Mapping Trees and Buildings",
+    "section": "Code snippets",
+    "text": "Code snippets\n\nShade simulation function\n\n#library(suncalc)\n#library(rayshader)\n#library(terra)\n\n#### Setup time intervals and sun positions\n\n#start &lt;-  as.POSIXct(\"2024-07-17 01:00:00\", tz = \"America/Los_Angeles\")\n#end &lt;-  as.POSIXct(\"2024-07-18 00:00:00\", tz = \"America/Los_Angeles\")\n\n#times &lt;- data.frame(dates = seq(start, end, \"hour\"))\n\n#sun_pos &lt;- getSunlightPosition(date = times$dates, lat = 49.2827, lon = -123.1207)\n\nshade_sim &lt;- function(pc, sun_calc,name){   #take a LiDAR point cloud,\n  alt &lt;- sun_calc$altitude*(180/pi)         #a table of sun positions,\n  azim &lt;- sun_calc$azimuth*(180/pi)         #and output file name as inputs\n  \n  if(alt &gt;= 0){\n    dsm &lt;- rasterize_canopy(pc, dsmtin(), res = 2) %&gt;%    #create and shade a dsm\n      raster_to_matrix() %&gt;% \n      ray_shade(sunaltitude = alt, sunangle = azim) %&gt;% \n      rast()\n  \n    writeRaster(dsm, name, overwrite = TRUE)   #write out the result\n  }\n}\n\n\n\nCreate 3D interactive plot from LiDAR using Rayshader and Tree3d\nMorgan-Wall T (2025). rayshader: Create Maps and Visualize Data in 2D and 3D. R package version 0.38.10, https://github.com/tylermorganwall/rayshader, https://www.rayshader.com.\nhttps://github.com/tylermorganwall/tree3dhttps://github.com/tylermorganwall/tree3d\n\n#library(lidR)\n#library(sf)\n#library(terra)\n#library(tree3d)\n#library(rayshader)\n#library(png)\n#library(rgl)\n\n#Load in data and set up region of interest\n\nlasFile &lt;- readLAScatalog(\"C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/LiDAR Vancouver 2022 - UBC Campus/All_LAS\", filter = \"-keep first\")\nlas &lt;- clip_rectangle(lasFile, 481808.5,5456316.8, 482134.3, 5456601.2)\n\nbuildings &lt;- st_read(\"C:/Users/mlefcoe.stu/OneDrive - UBC/Documents/FCOR599/Shade Mapping/building_polygons.shp\", promote_to_multi = FALSE)\npt4 &lt;- st_point(c(481808.5,5456316.8), dim = \"XY\")\npt3 &lt;- st_point(c(481808.5, 5456601.2), dim = \"XY\")\npt2 &lt;- st_point(c(482134.3, 5456316.8), dim = \"XY\")\npt1 &lt;- st_point(c(482134.3,5456601.2), dim = \"XY\")\npts &lt;- c(pt1,pt2,pt3,pt4)\n\nbuildings &lt;- st_crop(buildings,st_bbox(pts))\nbuildings &lt;- st_cast(buildings, to = \"POLYGON\")\n\n#Seperate tree from non-tree\nveg &lt;- filter_poi(las, Classification == LASHIGHVEGETATION)\n\n#Tree segmentation for convex hull (2d)\ntindiv &lt;- segment_trees(veg, algorithm = li2012(R = 3, speed_up = 5))\nmetrics &lt;- crown_metrics(tindiv, .stdtreemetrics, geom = \"convex\")\n\n#rayshader prep and get locations, heights and extent\ndsm &lt;- rasterize_terrain(las, algorithm = tin())\ndsm_matrix &lt;- raster_to_matrix(dsm)\nttops &lt;- locate_trees(veg, lmf(ws = 5))\ntree_locations &lt;- st_coordinates(ttops)\ndsm_extent &lt;- ext(dsm)\nextent_vals &lt;- dsm_extent@ptr$vector\nloc_metrics &lt;- st_intersects(ttops, metrics$geometry)\n\n#get tree widths\nwidths &lt;- c()\nfor(i in 1:580){\n  index &lt;- loc_metrics[[i]][1]\n  radius &lt;- sqrt(metrics$convhull_area[index]/pi)\n  widths &lt;- c(widths, radius)\n}\n\n\n#Overlay street names\noverlay_img &lt;- png::readPNG(\"C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/basemap_real.png\")\n\n#3D Digital Elevation Model\nheight_shade(dsm_matrix) %&gt;%\n  add_overlay(overlay_img) %&gt;% \n  add_shadow(texture_shade(dsm_matrix),0.2) %&gt;% \n  add_shadow(lamb_shade(dsm_matrix),0) %&gt;% \n  plot_3d(dsm_matrix, background = \"lightblue\",\n          zoom = 0.33)\n\n#Render trees\nrender_tree(lat = tree_locations[,2], \n            long = tree_locations[,1], \n            absolute_height = TRUE, \n            crown_width = widths,\n            tree_height = tree_locations[,3],\n            trunk_height_ratio = 0.2 + 0.1*runif(nrow(tree_locations)),\n            crown_color = \"#00aa00\",\n            type = \"cone\",\n            extent = dsm_extent, \n            heightmap = dsm_matrix,\n            clear_previous = TRUE,\n            min_height = 8)\n\n#Render Forest Sciences Center\nrender_buildings(buildings[c(9,15),],\n                 extent = dsm_extent,\n                 heightmap = dsm_matrix,\n                 material = \"burlywood4\",\n                 roof_material = \"darkolivegreen\",\n                 roof_height = 15,\n                 angle = 10)\n\n#Render other buildings\nrender_buildings(buildings[-9,],\n                 extent = dsm_extent,\n                 heightmap = dsm_matrix,\n                 material = \"brown\",\n                 roof_material = \"grey27\",\n                 roof_height = 10,\n                 angle = 10)\n\n#Change lighting\nrgl::pop3d(\"lights\")\nrgl::light3d(phi=35,theta=90, viewpoint.rel=F, diffuse=\"#ffffff\", specular=\"#000000\")\nrgl::light3d(phi=-45,theta=-40, viewpoint.rel=F, diffuse=\"#aaaaaa\", specular=\"#000000\")\n\nrgl::rglwidget()"
+  },
+  {
+    "objectID": "content.html#external-links",
+    "href": "content.html#external-links",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "You can also provide a frame linking to external websites. For example, here is a link to a Google Earth Engine application I developed. The full-screen GEE application is available here in case you’re interested.\n(To use the GEE tool, navigate to any city you’d like, hit apply filters, and click anywhere on the map to retrieve a time-series of Landsat surface temperature observations for that point. Areas where the maximum temp exceeded 35 degrees Celsius in your date-range are highlighted in red.)"
+  },
+  {
+    "objectID": "content.html#d-plot",
+    "href": "content.html#d-plot",
+    "title": "Project 1 - Capstone Deliverables",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\n![Gif](“C:/Users/mlefcoe.stu/Documents/Shade_Mapping_R/Outputs/movie_test.gif”)\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus. This was not one of the deliverables for my capstone project, but it is the building I spent most of my time at for the year I spent working on it. Produced in R , the tree positions, heights, and widths were generated from LiDAR data."
+  },
+  {
+    "objectID": "index - base.html",
+    "href": "index - base.html",
+    "title": "Your E-Portfolio",
+    "section": "",
+    "text": "Hey there,\nThis is your E-Portfolio landing page. Be sure to upload a professional headshot of yourself, and provide the appropriate links to your professional social media (linkedin, X/Twitter, etc). This is also a good place to provide a short summary of your education, career and interests. If you are associated with a lab or working with a research supervisor, it may be appropriate to provide some information on that here, along with links to relevant websites."
+  },
+  {
+    "objectID": "content - base.html",
+    "href": "content - base.html",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "This is a sample page where you can archive project deliverables. Every header you use will correspond to a tab in the legend - shown on the right-hand side of your screen (“On this page”).\nIf you’ve produced any GIS layers for your 599 project, this may be a good place to share them as interactive maps through leaflet. Alternatively, you can upload high-res figures showing correlations, box-plots, etc. from your report here, and provide a brief overview of key project results. If you have written some useful functions, you may also want to share those here to demonstrate proficiency in particular coding languages or synergies between notable coding packages.\n\n\nSample leaflet - for detailed leaflet instructions, visit the FCOR 599 workshop archive page here.\n\n\n\n\n\n\n\n\n\nSample code snippet. Notice that you can provide a toggle to switch between coding languages - this is referred to as a ‘tabset’ in quarto. It is good practice to try and convert your R code to python, and vice-versa to demonstrate coding proficiency. For example, let’s showcase a function for calculating NDVI in R and Python.\n\nRPython\n\n\ncalc_ndvi &lt;- function(nir, red){ ndvi &lt;- (nir-red)/(nir+red) return(ndvi) }\n\n\ndef calc_ndvi(nir, red): \n  ndvi = (nir.astype(float)-red.astype(float))/(nir.astype(float)+red.astype(float))\n  return(ndvi)\n\n\n\n\n\n\nYou can also provide a frame linking to external websites. For example, here is a link to a Google Earth Engine application I developed. The full-screen GEE application is available here in case you’re interested.\n(To use the GEE tool, navigate to any city you’d like, hit apply filters, and click anywhere on the map to retrieve a time-series of Landsat surface temperature observations for that point. Areas where the maximum temp exceeded 35 degrees Celsius in your date-range are highlighted in red.)"
+  },
+  {
+    "objectID": "content - base.html#leaflet",
+    "href": "content - base.html#leaflet",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "Sample leaflet - for detailed leaflet instructions, visit the FCOR 599 workshop archive page here."
+  },
+  {
+    "objectID": "content - base.html#code-snippets",
+    "href": "content - base.html#code-snippets",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "Sample code snippet. Notice that you can provide a toggle to switch between coding languages - this is referred to as a ‘tabset’ in quarto. It is good practice to try and convert your R code to python, and vice-versa to demonstrate coding proficiency. For example, let’s showcase a function for calculating NDVI in R and Python.\n\nRPython\n\n\ncalc_ndvi &lt;- function(nir, red){ ndvi &lt;- (nir-red)/(nir+red) return(ndvi) }\n\n\ndef calc_ndvi(nir, red): \n  ndvi = (nir.astype(float)-red.astype(float))/(nir.astype(float)+red.astype(float))\n  return(ndvi)"
+  },
+  {
+    "objectID": "content - base.html#external-links",
+    "href": "content - base.html#external-links",
+    "title": "Content & Deliverables",
+    "section": "",
+    "text": "You can also provide a frame linking to external websites. For example, here is a link to a Google Earth Engine application I developed. The full-screen GEE application is available here in case you’re interested.\n(To use the GEE tool, navigate to any city you’d like, hit apply filters, and click anywhere on the map to retrieve a time-series of Landsat surface temperature observations for that point. Areas where the maximum temp exceeded 35 degrees Celsius in your date-range are highlighted in red.)"
+  },
+  {
+    "objectID": "publications - base.html",
+    "href": "publications - base.html",
+    "title": "Publications",
+    "section": "",
+    "text": "Peer-reviewed publications:\nDespite listing them on your resume, it may also be pertinent to create a seperate tab for publications and reports. As your career progresses, this list may become quite long, so be sure to organize things. You may want to point to ‘most recent’ publications, or categorize things by project/topic."
+  },
+  {
+    "objectID": "resume - base.html",
+    "href": "resume - base.html",
+    "title": "Resume",
+    "section": "",
+    "text": "Education\n\nBSc Environmental and Sustainability Science\n\n\n\nPublications\nPeer-reviewed publications:\n\nList any peer-reviewed publications here.\n\nReports:\n\nList any non-peer reviewed materials you’d like to share here.\n\n\n\nConferences & Talks\nInvited Talks\n\nIf you’ve been invited to speak in a professional setting, list that here.\n\nConference Presentations\n\nIf the presentation was at a conference, list them here.\n\n\n\nAwards & Honors\n\nList any scholarships, bursaries, etc.\n\n\n\nTeaching Assistantships\n\nList any TA positions you may have held.\n\n\n\nInstitutional Service\n\nVolunteering etc."
+  },
+  {
+    "objectID": "content.html#deliverables",
+    "href": "content.html#deliverables",
+    "title": "Project 1 - Shade Mapping Trees and Buildings",
+    "section": "",
+    "text": "Assessing the percentage of tree shade per neighbourhood that falls on buildings.\n\nExample hourly tree shade from sunrise to sunset in Chancellor Place neighbourhood on a scale of 0 to 1, 0 being full shade. Generated from LiDAR in R.\n\nPercentage of tree shade falling on buildings per neighbourhood, hourly from sunrise to sunset.\n\n\n\n\n\n\n\n\n\n\n\nInteractive point cloud for one area of interest filtered to display trees only.\n\n\n\n\n\n\nSame interactive point cloud with the central tree isolated and normalized ground points added back in.\n\nExample tree shade cast by an individual tree every thirty minutes."
+  },
+  {
+    "objectID": "resume.html#education",
+    "href": "resume.html#education",
+    "title": "Resume",
+    "section": "",
+    "text": "BSc Environmental and Sustainability Science\nMaster of Geomatics for Environmental Management"
+  },
+  {
+    "objectID": "resume.html#experience",
+    "href": "resume.html#experience",
+    "title": "Resume",
+    "section": "Experience",
+    "text": "Experience\n\nEco-Corridors Laurentiens Community based science organisation researching wildlife corridors. Performed field work, data collection and data analysis."
+  },
+  {
+    "objectID": "resume.html#reports",
+    "href": "resume.html#reports",
+    "title": "Resume",
+    "section": "Reports",
+    "text": "Reports\n\nAnimal Use of Manmade Crossing Structures Under the supervision of the Landscape Ecology and Urban Sprawl lab at Concordia University, conducted research on animal use of water culverts and similar underpasses along highway 15 in the Laurentiens, QC. A road ecology project with the goal of studying and aiding habitat connectivity across highways.\nAnalysis of Urban Heat Island Effects in Montreal Completed a GIS analysis on the Urban Heat Island effect in partnership with community leads for the borough of Ville-Maie in Montreal."
+  },
+  {
+    "objectID": "resume.html#institutional-service",
+    "href": "resume.html#institutional-service",
+    "title": "Resume",
+    "section": "Institutional Service",
+    "text": "Institutional Service\n\nVolunteering at Centre Greene Community Centre"
+  },
+  {
+    "objectID": "Project Deliverables.html",
+    "href": "Project Deliverables.html",
+    "title": "Project Deliverables",
+    "section": "",
+    "text": "Project 1 - Shade Mapping Trees and Buildings\n\n\nTree Shade in UBC Neighbourhoods\nAssessing the percentage of tree shade per neighbourhood that falls on buildings.\n\nExample hourly tree shade from sunrise to sunset in Chancellor Place neighbourhood on a scale of 0 to 1, 0 being full shade.\n\nPercentage of tree shade falling on buildings per neighbourhood, hourly from sunrise to sunset.\n\n\nIndividual Tree Shade\n\nIsolating the shade of individual trees for a species level analysis. Beginning from a point cloud clipped to a species of interest, ending with a shade model for a specific tree.\nScroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive point cloud for one area of interest filtered to display trees only.\n\n\n\n\n\n\nSame interactive point cloud with the central tree isolated and normalized ground points added back in.\n\nExample tree shade cast by an individual tree every thirty minutes.\n\n\nFinal Shade Map\n\n\n\n\n\n\nInteractive webmap of climate change resilient shade across campus. Dark areas represent a high density of tall, climate change resilient tree species that tend to cast more shade.\n\n\n\n\nProject 2 - Urban Heat Island Hotspots Montreal\nThe client for this project was Peter-Mcgill Community Table, looking to identify areas vulnerable to UHI in the district of Ville-Marie.\n\nRisk level based on medium income across districts, population aged 65 or older, and population density.\n\nEnvironmental risk factors map. Describes the likelihood of Urban Heat Island Effect."
+  },
+  {
+    "objectID": "Maps and Visualizations.html",
+    "href": "Maps and Visualizations.html",
+    "title": "Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus. Generated from LiDAR using R."
+  },
+  {
+    "objectID": "Maps and Visualizations.html#d-interactive-plot",
+    "href": "Maps and Visualizations.html#d-interactive-plot",
+    "title": "Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus. Generated from LiDAR using R."
+  },
+  {
+    "objectID": "Maps and Visualizations.html#salmon-stream-network-analysis",
+    "href": "Maps and Visualizations.html#salmon-stream-network-analysis",
+    "title": "Maps and Visualizations",
+    "section": "Salmon Stream Network Analysis",
+    "text": "Salmon Stream Network Analysis\n\nThe result of a hydrology network analysis for the conservation of salmon species in British Columbia."
+  },
+  {
+    "objectID": "Reports.html",
+    "href": "Reports.html",
+    "title": "Reports",
+    "section": "",
+    "text": "Animal Use of Manmade Crossing Structures\nA directed study conducted under the supervision of the Landscape Ecology lab at Concordia University.\n\n\n\n\nConflict Styles\nAn assessment of conflict and negotiation near the Lebialem-Mone Forest in southern Cameroon, from the perspective of wildlife conservation and environmental management.\n\n\n\n MLefcoe ARankin ConlictStyles FCOR510  by  Max"
+  },
+  {
+    "objectID": "Code Snippets.html",
+    "href": "Code Snippets.html",
+    "title": "Code Snippets",
+    "section": "",
+    "text": "Code Snippets\nMorgan-Wall T (2025). rayshader: Create Maps and Visualize Data in 2D and 3D. R package version 0.38.10, https://github.com/tylermorganwall/rayshader, https://www.rayshader.com.\nRoussel J, Auty D, Coops NC, Tompalski P, Goodbody TR, Meador AS, Bourdon J, de Boissieu F, Achim A (2020). “lidR: An R package for analysis of Airborne Laser Scanning (ALS) data.” Remote Sensing of Environment, 251, 112061. ISSN 0034-4257, doi:10.1016/j.rse.2020.112061, https://www.sciencedirect.com/science/article/pii/S0034425720304314.\nRoussel J, Auty D (2024). Airborne LiDAR Data Manipulation and Visualization for Forestry Applications. R package version 4.1.2, https://cran.r-project.org/package=lidR.\n\nShade simulation function in R\n\n#library(suncalc)\n#library(rayshader)\n#library(terra)\n\n#### Setup time intervals and sun positions\n\n#start &lt;-  as.POSIXct(\"2024-07-17 01:00:00\", tz = \"America/Los_Angeles\")\n#end &lt;-  as.POSIXct(\"2024-07-18 00:00:00\", tz = \"America/Los_Angeles\")\n\n#times &lt;- data.frame(dates = seq(start, end, \"hour\"))\n\n#sun_pos &lt;- getSunlightPosition(date = times$dates, lat = 49.2827, lon = -123.1207)\n\nshade_sim &lt;- function(pc, sun_calc,name){   #take a LiDAR point cloud,\n  alt &lt;- sun_calc$altitude*(180/pi)         #a table of sun positions,\n  azim &lt;- sun_calc$azimuth*(180/pi)         #and output file name as inputs\n  \n  if(alt &gt;= 0){\n    dsm &lt;- rasterize_canopy(pc, dsmtin(), res = 2) %&gt;%    #create and shade a dsm\n      raster_to_matrix() %&gt;% \n      ray_shade(sunaltitude = alt, sunangle = azim) %&gt;% \n      rast()\n  \n    writeRaster(dsm, name, overwrite = TRUE)   #write out the result\n  }\n}\n\n\n\nIsolate center tree from a LiDAR point cloud\n\n#Load in 764 segmented point clouds\npath &lt;- (list.files(\"Outputs/Species Level/las_clipped\", full.names = TRUE))\n\nrois &lt;- list()\nfor(i in 1:length(path)){\n  rois[[i]] &lt;- readLAS(path[i])\n}\n\n#Point clouds are circular regions clipped from larger file. This allowed for the center coordinates to be included in the filename and used in isolating the central tree below\nroi_indiv &lt;- list()\nfor(i in 1:764){\n#generate metrics as a table of treeIDs and coordinates\nmetrics &lt;- crown_metrics(rois[[i]], ~list(z_max = max(Z), z_mean = mean(Z)))\n\n#use filename to create point geometries in the center of the plot\ntest_centroid &lt;- str_extract(path[i], \n                 \"[:digit:]{6}\\\\.[:digit:]{1}\\\\_[:digit:]{7}|[:digit:]{6}\\\\_[:digit:]{7}\") %&gt;%\n  str_replace(\"_\", \", \") %&gt;%\n  str_split(\"\\\\,\\\\s\",2) %&gt;%\n  unlist() %&gt;%\n  as.numeric() %&gt;%\n  st_point() %&gt;%\n  st_geometry()\n\nst_crs(test_centroid) &lt;- 26910\n  \n#add new row to metrics table that contains distance from tree to center\nnew_metrics &lt;- mutate(metrics, dist = st_distance(metrics, test_centroid))\n  \n#central tree is the tree with the shortest distance to the centroid\ncenter_tree &lt;- filter(new_metrics, dist == min(dist))\n  \n#assign it back out to a list\nroi_indiv[[i]] &lt;- filter_poi(rois[[i]], treeID == center_tree$treeID)\n}\n\n\n\nArcpy Script for Shade Percentage Analysis\n#Loop georeference function through each folder, georeference shade simulation outputs\nog_path = r\"C:\\Users\\mlefcoe.stu\\Documents\\Shade_Mapping_R\\Outputs\\Neighbourhood Level\"\ncontrol_path = r\"C:\\Users\\mlefcoe.stu\\Documents\\Shade_Mapping_R\\Inputs\\Control_Points\"\nras_folders = os.listdir(og_path)\n\nfor i in range(len(ras_folders)):\n    georefer(directory = og_path + \"\\\\\" + ras_folders[i], out_name =\n    ras_folders[i][:ras_folders[i].index(\" \")], link = control_path + \"\\\\\" +\n    ras_folders[i][:ras_folders[i].index(\"_\")] + \".txt\")\n\n\n#Define function to reclassify all shade rasters in a folder\ndef slicer(directory, out_name):\n    count = 0\n    ras_files = os.listdir(directory)\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\".tif\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            out_slice = arcpy.sa.Slice(in_raster=ras, number_zones=3, \n            slice_type = \"NATURAL_BREAKS\")\n            out_slice.save(directory + \"\\\\\" + out_name + \"reclassed\" + \n            str(count) + \".tif\")\n            count = count + 1\n\n#Loop reclassing functions through folders\nog_path = r\"C:\\Users\\mlefcoe.stu\\Documents\\Shade_Mapping_R\\Outputs\\Neighbourhood Level\"\nras_folders = os.listdir(og_path)\n\nfor i in range(len(ras_folders)):\n    slicer(directory = og_path + \"\\\\\" + ras_folders[i], \n    out_name=ras_folders[i][:ras_folders[i].index(\" \")])\n\n#Define function to extract shade from all shade rasters in a folder\ndef extract_shade(directory, out_name):\n    count = 0\n    ras_files = os.listdir(directory)\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\"reclassed\" + str(count) + \".tif\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            attextract = arcpy.sa.ExtractByAttributes(in_raster = ras,\n            where_clause = \"VALUE = 1\")\n            attextract.save(directory + \"\\\\\" + out_name + \"extracted\" + \n            str(count) + \".tif\")\n            count = count + 1\n    count = 10\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\"reclassed\" + str(count) + \".tif\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            attextract = arcpy.sa.ExtractByAttributes(in_raster = ras,\n            where_clause = \"VALUE = 1\")\n            attextract.save(directory + \"\\\\\" + out_name + \"extracted\" + \n            str(count) + \".tif\")\n            count = count + 1\n\n#Loop extracting function through each folder\nog_path = r\"C:\\Users\\mlefcoe.stu\\Documents\\Shade_Mapping_R\\Outputs\\Neighbourhood Level\"\nras_folders = os.listdir(og_path)\n\nfor i in range(len(ras_folders)):\n    extract_shade(directory = og_path + \"\\\\\" + ras_folders[i], \n    out_name=ras_folders[i][:ras_folders[i].index(\" \")])\n\n#Define a function to convert shade rasters in a folder to polygons\ndef ras_to_poly(directory, out_name):\n    count = 0\n    ras_files = os.listdir(directory)\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\"extracted\" + str(count) + \".tif\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            arcpy.conversion.RasterToPolygon(in_raster=ras, \n            out_polygon_features = directory + \"\\\\\" + out_name + \"shade_poly\" +\n            str(count) + \".shp\")\n            count = count + 1\n    count = 10\n    ras_files = os.listdir(directory)\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\"extracted\" + str(count) + \".tif\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            arcpy.conversion.RasterToPolygon(in_raster=ras, \n            out_polygon_features = directory + \"\\\\\" + out_name + \"shade_poly\" +\n            str(count) + \".shp\")\n            count = count + 1\n\n#Loop polyshade function through all folders\nog_path = r\"C:\\Users\\mlefcoe.stu\\Documents\\Shade_Mapping_R\\Outputs\\Neighbourhood Level\"\nras_folders = os.listdir(og_path)\nras_folders\n\nfor i in range(len(ras_folders)):\n    ras_to_poly(directory = og_path + \"\\\\\" + ras_folders[i], \n    out_name=ras_folders[i][:ras_folders[i].index(\" \")])\n\n#Define a function to interesect each shade raster in a folder with a specified feature class\ndef intersector(directory, out_name, feature):\n    count = 0\n    ras_files = os.listdir(directory)\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\"poly\" + str(count) + \".shp\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            arcpy.analysis.PairwiseIntersect(in_features = [feature, ras],\n            out_feature_class = directory + \"\\\\\" + out_name + \"intersected\" +\n            str(count))\n            count = count + 1\n    count = 10\n    for i in range(len(ras_files)):\n        if ras_files[i].endswith(\"poly\" + str(count) + \".shp\"):\n            ras = directory + \"\\\\\" + ras_files[i]\n            arcpy.analysis.PairwiseIntersect(in_features = [feature, ras],\n            out_feature_class = directory + \"\\\\\" + out_name + \"intersected\" +\n            str(count))\n            count = count + 1\n\n#Loop the intersection function through each folder\nfor i in range(len(ras_folders)):\n    intersector(directory = og_path + \"\\\\\" + ras_folders[i], \n    out_name = ras_folders[i][:ras_folders[i].index(\" \")], \n    feature = r\"C:\\Users\\mlefcoe.stu\\OneDrive - UBC\\Documents\\FCOR599\\Shade         Mapping\\building_polygons.shp\")"
+  },
+  {
+    "objectID": "Other Maps and Visualizations.html",
+    "href": "Other Maps and Visualizations.html",
+    "title": "Other Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus. Generated from LiDAR using R."
+  },
+  {
+    "objectID": "Other Maps and Visualizations.html#d-interactive-plot",
+    "href": "Other Maps and Visualizations.html#d-interactive-plot",
+    "title": "Other Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus. Generated from LiDAR using R."
+  },
+  {
+    "objectID": "Other Maps and Visualizations.html#salmon-stream-network-analysis",
+    "href": "Other Maps and Visualizations.html#salmon-stream-network-analysis",
+    "title": "Other Maps and Visualizations",
+    "section": "Salmon Stream Network Analysis",
+    "text": "Salmon Stream Network Analysis\n\nThe result of a hydrology network analysis for the conservation of salmon species in British Columbia."
+  },
+  {
+    "objectID": "Other_Maps_and_Visualizations.html",
+    "href": "Other_Maps_and_Visualizations.html",
+    "title": "Other Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus."
+  },
+  {
+    "objectID": "Other_Maps_and_Visualizations.html#d-interactive-plot",
+    "href": "Other_Maps_and_Visualizations.html#d-interactive-plot",
+    "title": "Other Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus."
+  },
+  {
+    "objectID": "Other_Maps_and_Visualizations.html#salmon-stream-network-analysis",
+    "href": "Other_Maps_and_Visualizations.html#salmon-stream-network-analysis",
+    "title": "Other Maps and Visualizations",
+    "section": "Salmon Stream Network Analysis",
+    "text": "Salmon Stream Network Analysis\n\nThe result of a hydrology network analysis for the conservation of salmon species in British Columbia."
+  },
+  {
+    "objectID": "Other-Maps-and-Visualizations.html",
+    "href": "Other-Maps-and-Visualizations.html",
+    "title": "Other Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus."
+  },
+  {
+    "objectID": "Other-Maps-and-Visualizations.html#d-interactive-plot",
+    "href": "Other-Maps-and-Visualizations.html#d-interactive-plot",
+    "title": "Other Maps and Visualizations",
+    "section": "",
+    "text": "Scroll to zoom. Left-click to rotate.\n\n\n\n\n\n\nInteractive 3D view of the Forest Sciences Centre on UBC Vancouver Campus."
+  },
+  {
+    "objectID": "Other-Maps-and-Visualizations.html#salmon-stream-network-analysis",
+    "href": "Other-Maps-and-Visualizations.html#salmon-stream-network-analysis",
+    "title": "Other Maps and Visualizations",
+    "section": "Salmon Stream Network Analysis",
+    "text": "Salmon Stream Network Analysis\n\nThe result of a hydrology network analysis for the conservation of salmon species in British Columbia."
+  }
+]
